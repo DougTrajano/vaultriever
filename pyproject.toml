@@ -38,6 +38,7 @@ Issues = "https://github.com/DougTrajano/vaultriever/issues"
 [project.optional-dependencies]
 aws = ["boto3>=1.26.0"]
 databricks = ["databricks-sdk>=0.20.0"]
+docs = ["mkdocs>=1.6.0"]
 
 [dependency-groups]
 dev = [
