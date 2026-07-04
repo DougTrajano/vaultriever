@@ -1,3 +1,6 @@
+import sys
+import types
+
 import pytest
 
 from vaultriever.exceptions import SecretRetrievalError
@@ -62,3 +65,34 @@ class TestDatabricksSecretProvider:
             provider.get_secret_value(props)
         assert 'secret-value-should-not-leak' not in str(excinfo.value)
         assert 'my-scope' in str(excinfo.value)
+
+    def test_default_context_falls_back_to_sdk_when_runtime_is_unavailable(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        fake_databricks = types.ModuleType('databricks')
+        fake_databricks.__path__ = []  # type: ignore[attr-defined]
+
+        fake_sdk = types.ModuleType('databricks.sdk')
+        fake_sdk.__path__ = []  # type: ignore[attr-defined]
+
+        calls: list[str | None] = []
+
+        class FakeWorkspaceClient:
+            def __init__(self, profile: str | None = None) -> None:
+                calls.append(profile)
+                self.dbutils = types.SimpleNamespace(
+                    secrets=types.SimpleNamespace(get=lambda scope, key: 'resolved-value')
+                )
+
+        fake_sdk.WorkspaceClient = FakeWorkspaceClient
+        fake_databricks.sdk = fake_sdk
+
+        monkeypatch.setitem(sys.modules, 'databricks', fake_databricks)
+        monkeypatch.setitem(sys.modules, 'databricks.sdk', fake_sdk)
+        monkeypatch.delitem(sys.modules, 'databricks.sdk.runtime', raising=False)
+
+        provider = DatabricksSecretProvider()
+        props = parse_sri('databricks::my-scope:MY_KEY')
+
+        assert provider.get_secret_value(props) == 'resolved-value'
+        assert calls == [None]

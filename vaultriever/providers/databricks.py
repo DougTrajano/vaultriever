@@ -3,8 +3,8 @@
 SRI semantics: ``databricks:<profile>:<scope>:<key>``.
 
 - Empty region (``databricks::my-scope:MY_KEY``) -> default workspace: the
-  runtime ``dbutils`` when running on Databricks, otherwise the SDK's default
-  authentication (env vars / DEFAULT profile).
+    runtime ``dbutils`` when running on Databricks, otherwise the SDK's default
+    authentication.
 - Non-empty region -> used as the Databricks CLI profile name, e.g.
   ``databricks:staging:my-scope:MY_KEY`` reads via the ``staging`` profile.
 
@@ -51,11 +51,17 @@ def _get_secret(context: DatabricksContext, scope: str, key: str) -> str:
             from databricks.sdk.runtime import dbutils
 
             return str(dbutils.secrets.get(scope=scope, key=key))
-        except ImportError as exc:
-            raise DatabricksConfigurationError(
-                "databricks-sdk is required for the 'databricks' provider. "
-                'Install with: pip install vaultriever[databricks]'
-            ) from exc
+        except ImportError:
+            try:
+                from databricks.sdk import WorkspaceClient
+            except ImportError as import_exc:
+                raise DatabricksConfigurationError(
+                    "databricks-sdk is required for the 'databricks' provider. "
+                    'Install with: pip install vaultriever[databricks]'
+                ) from import_exc
+
+            client = WorkspaceClient()
+            return str(client.dbutils.secrets.get(scope=scope, key=key))
 
     try:
         from databricks.sdk import WorkspaceClient

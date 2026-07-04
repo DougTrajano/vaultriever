@@ -1,0 +1,4 @@
+site_name: Vaultriever
+site_description: Retrieve secrets in an ARN-like way from different vaults seamlessly.
+nav:
+  - Home: index.md
