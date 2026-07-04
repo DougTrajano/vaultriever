@@ -1,5 +1,6 @@
 import sys
 import types
+from typing import Any, cast
 
 import pytest
 
@@ -70,10 +71,10 @@ class TestDatabricksSecretProvider:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         fake_databricks = types.ModuleType('databricks')
-        setattr(fake_databricks, '__path__', [])
+        fake_databricks.__path__ = []
 
         fake_sdk = types.ModuleType('databricks.sdk')
-        setattr(fake_sdk, '__path__', [])
+        fake_sdk.__path__ = []
 
         calls: list[str | None] = []
 
@@ -84,8 +85,8 @@ class TestDatabricksSecretProvider:
                     secrets=types.SimpleNamespace(get=lambda scope, key: 'resolved-value')
                 )
 
-        setattr(fake_sdk, 'WorkspaceClient', FakeWorkspaceClient)
-        setattr(fake_databricks, 'sdk', fake_sdk)
+        cast(Any, fake_sdk).WorkspaceClient = FakeWorkspaceClient
+        cast(Any, fake_databricks).sdk = fake_sdk
 
         monkeypatch.setitem(sys.modules, 'databricks', fake_databricks)
         monkeypatch.setitem(sys.modules, 'databricks.sdk', fake_sdk)
