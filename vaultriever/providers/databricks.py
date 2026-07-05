@@ -86,7 +86,7 @@ class DatabricksSecretProvider:
         )
         try:
             return _get_secret(context, props.secret_name, props.secret_key)
-        except (SecretRetrievalError, DatabricksConfigurationError):
+        except SecretRetrievalError:
             raise
         except Exception as exc:
             raise SecretRetrievalError(
