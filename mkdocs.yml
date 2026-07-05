@@ -1,4 +1,126 @@
 site_name: Vaultriever
-site_description: Retrieve secrets in an ARN-like way from different vaults seamlessly.
+site_description: Retrieve secrets in an ARN-like way from different vaults seamlessly, compatible with pydantic-settings.
+site_url: https://dougtrajano.github.io/vaultriever
+
+repo_name: vaultriever
+repo_url: https://github.com/DougTrajano/vaultriever
+edit_uri: edit/main/docs/
+
+copyright: © Douglas Trajano 2025 to present. Licensed under the MIT License.
+
 nav:
   - Home: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quick Start: quick-start.md
+  - User Guide:
+      - Secret Resource Identifiers: sri.md
+      - Pydantic Settings Integration: pydantic-settings.md
+      - Providers: providers.md
+      - Custom Providers: custom-providers.md
+  - Security: security.md
+  - API Reference:
+      - api/sri.md
+      - api/resolver.md
+      - api/settings.md
+      - api/providers.md
+      - api/exceptions.md
+
+extra:
+  # hide the "Made with Material for MkDocs" message
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/DougTrajano/vaultriever
+      name: vaultriever - GitHub
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/douglas-trajano
+      name: Douglas Trajano - LinkedIn
+
+theme:
+  name: material
+  language: en
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme)"
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-auto
+        name: "Switch to light mode"
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: "Switch to dark mode"
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: "Switch to system preference"
+  features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - navigation.path
+    - navigation.sections
+    - navigation.tracking
+    - toc.follow
+
+# https://www.mkdocs.org/user-guide/configuration/#validation
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+watch:
+  - vaultriever
+
+plugins:
+  - search
+  - git-revision-date-localized
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            relative_crossrefs: true
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            group_by_category: false
+            heading_level: 3
+            docstring_style: google
+            show_root_heading: true
+            show_source: true
