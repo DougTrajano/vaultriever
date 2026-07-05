@@ -129,6 +129,11 @@ class TestAzureSecretProvider:
         with pytest.raises(SecretRetrievalError, match='non-empty vault name'):
             provider.get_secret_value(props)
 
+    def test_missing_version_raises(self, provider: AzureSecretProvider) -> None:
+        props = parse_sri(f'azure:{VAULT}:my-secret:')
+        with pytest.raises(SecretRetrievalError, match='non-empty version'):
+            provider.get_secret_value(props)
+
     def test_sdk_error_is_wrapped_and_does_not_leak_value(
         self, provider: AzureSecretProvider, monkeypatch: pytest.MonkeyPatch
     ) -> None:

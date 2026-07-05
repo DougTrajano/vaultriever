@@ -1,7 +1,13 @@
 """AWS Secrets Manager provider.
 
-SRI semantics: ``aws:<region>:<secret_name>:<json_key>``. The secret's
-``SecretString`` must be a JSON object; ``json_key`` selects one of its keys.
+SRI semantics: ``aws:<region>:<secret_name>:<json_key>``.
+
+- If the secret's ``SecretString`` is a JSON object, ``json_key`` is required
+  and selects one of its keys.
+- If the secret is plaintext (not a JSON object), ``json_key`` must be
+  omitted (``aws:<region>:<secret_name>:``) and the whole ``SecretString`` is
+  returned as-is.
+
 Credentials are resolved by the AWS SDK default chain (env vars, profile,
 IAM role).
 
@@ -22,8 +28,8 @@ logger = get_logger(__name__)
 
 
 @lru_cache
-def _get_aws_secret_json(secret_name: str, region_name: str) -> dict[str, Any]:
-    """Fetch and decode a JSON secret, caching by (secret_name, region)."""
+def _get_aws_secret_string(secret_name: str, region_name: str) -> str:
+    """Fetch the raw secret string, caching by (secret_name, region)."""
     try:
         import boto3
     except ImportError as exc:  # pragma: no cover - depends on install extras
@@ -46,17 +52,11 @@ def _get_aws_secret_json(secret_name: str, region_name: str) -> dict[str, Any]:
         raise SecretRetrievalError(
             f'AWS secret {secret_name!r} has no SecretString (binary secrets are not supported)'
         )
-    try:
-        data = json.loads(secret_string)
-    except json.JSONDecodeError as exc:
-        raise SecretRetrievalError(f'AWS secret {secret_name!r} is not valid JSON') from exc
-    if not isinstance(data, dict):
-        raise SecretRetrievalError(f'AWS secret {secret_name!r} is not a JSON object')
-    return data
+    return secret_string
 
 
 class AWSSecretProvider:
-    """Retrieve keys from JSON secrets stored in AWS Secrets Manager."""
+    """Retrieve values from AWS Secrets Manager, as JSON keys or plaintext."""
 
     name = 'aws'
 
@@ -65,7 +65,24 @@ class AWSSecretProvider:
             raise SecretRetrievalError(
                 "AWS SRIs require a non-empty region, e.g. 'aws:us-east-1:my-secret:MY_KEY'"
             )
-        data = _get_aws_secret_json(props.secret_name, props.qualifier)
+        secret_string = _get_aws_secret_string(props.secret_name, props.qualifier)
+        try:
+            data = json.loads(secret_string)
+        except json.JSONDecodeError:
+            data = None
+        if not isinstance(data, dict):
+            if props.secret_key is not None:
+                raise SecretRetrievalError(
+                    f'AWS secret {props.secret_name!r} is not JSON-based; omit the secret_key '
+                    f"segment for plaintext secrets, e.g. 'aws:{props.qualifier}:"
+                    f"{props.secret_name}:'"
+                )
+            return secret_string
+        if props.secret_key is None:
+            raise SecretRetrievalError(
+                f'AWS secret {props.secret_name!r} is a JSON object; secret_key is required to '
+                f'select a key'
+            )
         try:
             return data[props.secret_key]
         except KeyError:
@@ -76,4 +93,4 @@ class AWSSecretProvider:
     @staticmethod
     def clear_cache() -> None:
         """Clear the cached secret payloads (e.g. after rotation)."""
-        _get_aws_secret_json.cache_clear()
+        _get_aws_secret_string.cache_clear()

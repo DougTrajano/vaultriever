@@ -2,6 +2,8 @@
 
 Retrieve secrets in an ARN-like way from different vaults seamlessly, compatible with [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) — no custom field types, just `str` fields plus a reusable mixin.
 
+It's particularly useful for projects that need to support multiple vaults, or for libraries that want to avoid forcing a specific vault on their users.
+
 ## Secret Resource Identifier (SRI)
 
 Secrets are addressed with a 4-part string:
@@ -12,7 +14,7 @@ provider:qualifier:secret_name:secret_key
 
 | Provider | Example | Notes |
 | --- | --- | --- |
-| AWS Secrets Manager | `aws:us-east-1:my-secret:OPENAI_API_KEY` | Secret must be a JSON object; `secret_key` selects a key. |
+| AWS Secrets Manager | `aws:us-east-1:my-secret:OPENAI_API_KEY` | JSON-object secrets: `secret_key` selects a key. Plaintext secrets: omit `secret_key` (`aws:us-east-1:my-secret:`) to get the whole value. |
 | Databricks | `databricks::my-secret-scope:OPENAI_API_KEY` | Empty qualifier → default workspace/profile; non-empty qualifier → CLI profile name. |
 | Azure Key Vault | `azure:my-vault:my-secret:latest` | Single-value secret; `secret_key` is the version (`latest` or a version id). |
 | GCP Secret Manager | `gcp:my-project:my-secret:latest` | Single-value secret; `secret_key` is the version (`latest` or a version number). |
@@ -97,6 +99,10 @@ SecretProviderRegistry.register(MyVaultProvider())
 
 - Credentials come from the AWS SDK default chain (env vars, profile, IAM role).
 - The region is required and taken from the SRI.
+- If the secret's `SecretString` is a JSON object, `secret_key` is required and selects a key from
+  it. If it's plaintext (or JSON that isn't an object), omit `secret_key` (`aws:region:name:`) to
+  get the whole `SecretString` back — providing a key for a plaintext secret, or omitting it for a
+  JSON-object secret, raises an error.
 - Secret payloads are cached per `(secret_name, region)` for the process lifetime; call `AWSSecretProvider.clear_cache()` after a rotation.
 
 ### Databricks

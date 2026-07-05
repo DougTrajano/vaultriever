@@ -83,6 +83,11 @@ class TestGCPSecretProvider:
         with pytest.raises(SecretRetrievalError, match='non-empty project id'):
             provider.get_secret_value(props)
 
+    def test_missing_version_raises(self, provider: GCPSecretProvider) -> None:
+        props = parse_sri(f'gcp:{PROJECT}:my-secret:')
+        with pytest.raises(SecretRetrievalError, match='non-empty version'):
+            provider.get_secret_value(props)
+
     def test_sdk_error_is_wrapped_and_does_not_leak_value(
         self, provider: GCPSecretProvider, monkeypatch: pytest.MonkeyPatch
     ) -> None:
