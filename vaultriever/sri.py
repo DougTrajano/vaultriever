@@ -11,6 +11,8 @@ Examples:
     - ``aws:us-east-1:my-secret:OPENAI_API_KEY``
     - ``databricks::my-secret-scope:OPENAI_API_KEY`` (empty qualifier ->
       default profile/workspace)
+    - ``aws:us-east-1:my-plain-secret:`` (empty secret_key -> provider-defined
+      default, e.g. a plaintext AWS secret)
 """
 
 from __future__ import annotations
@@ -37,28 +39,28 @@ class SecretProperties:
     provider: str
     qualifier: str | None
     secret_name: str
-    secret_key: str
+    secret_key: str | None
 
 
 def is_sri(value: str) -> bool:
     """Return True if ``value`` is structurally a valid SRI.
 
     The check requires exactly 4 colon-separated parts, a lowercase provider
-    name, and non-empty secret_name/secret_key. Only the qualifier may be
-    empty. This is a structural check only; it does not verify that the
-    provider is registered or that the secret exists.
+    name, and a non-empty secret_name. Qualifier and secret_key may both be
+    empty (their meaning when empty is provider-defined). This is a
+    structural check only; it does not verify that the provider is
+    registered or that the secret exists.
     """
     if not isinstance(value, str):
         return False
     parts = value.split(':')
     if len(parts) != SRI_PARTS:
         return False
-    provider, qualifier, secret_name, secret_key = parts
+    provider, qualifier, secret_name, _secret_key = parts
     return (
         bool(_PROVIDER_RE.match(provider))
         and bool(_QUALIFIER_RE.match(qualifier))
         and bool(secret_name)
-        and bool(secret_key)
     )
 
 
@@ -85,12 +87,10 @@ def parse_sri(value: str) -> SecretProperties:
         )
     if not secret_name:
         raise SRIParseError(f'SRI secret_name must be non-empty. {_FORMAT_HINT}')
-    if not secret_key:
-        raise SRIParseError(f'SRI secret_key must be non-empty. {_FORMAT_HINT}')
 
     return SecretProperties(
         provider=provider,
         qualifier=qualifier or None,
         secret_name=secret_name,
-        secret_key=secret_key,
+        secret_key=secret_key or None,
     )

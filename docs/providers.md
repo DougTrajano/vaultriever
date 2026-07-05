@@ -25,9 +25,12 @@ a provider whose SDK is missing.
 aws:us-east-1:my-secret:OPENAI_API_KEY
 ```
 
-- **JSON secrets only.** The secret's `SecretString` must be a **JSON object**; `secret_key`
-  selects one of its keys. Binary secrets and non-object JSON raise
-  [`SecretRetrievalError`](api/exceptions.md#vaultriever.exceptions.SecretRetrievalError).
+- **JSON object or plaintext.** If the secret's `SecretString` is a **JSON object**, `secret_key`
+  is **required** and selects one of its keys. If the secret is **plaintext** (not a JSON object),
+  `secret_key` must be **omitted** — `aws:<region>:<secret_name>:` — and the whole `SecretString`
+  is returned as-is. Providing a `secret_key` for a plaintext secret, or omitting it for a
+  JSON-object secret, raises [`SecretRetrievalError`](api/exceptions.md#vaultriever.exceptions.SecretRetrievalError).
+  Binary secrets (no `SecretString`) also raise `SecretRetrievalError`.
 - **Region is required** and taken from the SRI. An empty region raises `SecretRetrievalError`.
 - **Credentials** come from the standard AWS SDK default chain — environment variables, shared
   config/credentials profile, or an IAM role.
@@ -53,6 +56,13 @@ from vaultriever import resolve_secret
 
 resolve_secret('aws:us-east-1:my-secret:OPENAI_API_KEY')  # 'sk-...'
 resolve_secret('aws:us-east-1:my-secret:DB_PASSWORD')     # '...' (same cached payload)
+```
+
+A plaintext secret (`SecretString` is not a JSON object) is returned whole. Omit `secret_key`
+(trailing colon, nothing after it):
+
+```python
+resolve_secret('aws:us-east-1:my-plain-secret:')  # the raw SecretString
 ```
 
 ## Databricks

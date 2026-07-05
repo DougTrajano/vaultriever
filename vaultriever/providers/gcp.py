@@ -53,6 +53,10 @@ class GCPSecretProvider:
             raise SecretRetrievalError(
                 "GCP SRIs require a non-empty project id, e.g. 'gcp:my-project:my-secret:latest'"
             )
+        if not props.secret_key:
+            raise SecretRetrievalError(
+                "GCP SRIs require a non-empty version, e.g. 'gcp:my-project:my-secret:latest'"
+            )
         return _get_gcp_secret_value(props.qualifier, props.secret_name, props.secret_key)
 
     @staticmethod

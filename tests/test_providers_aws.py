@@ -6,7 +6,7 @@ import pytest
 from moto import mock_aws
 
 from vaultriever.exceptions import SecretRetrievalError
-from vaultriever.providers.aws import AWSSecretProvider, _get_aws_secret_json
+from vaultriever.providers.aws import AWSSecretProvider, _get_aws_secret_string
 from vaultriever.sri import parse_sri
 
 REGION = 'us-east-1'
@@ -30,6 +30,7 @@ def secretsmanager(monkeypatch: pytest.MonkeyPatch) -> Iterator[object]:
             SecretString=json.dumps({'OPENAI_API_KEY': 'sk-test-123', 'OTHER': 'value'}),
         )
         client.create_secret(Name='not-json', SecretString='just a plain string')
+        client.create_secret(Name='not-object', SecretString=json.dumps(['a', 'b']))
         yield client
 
 
@@ -50,11 +51,30 @@ class TestAWSSecretProvider:
         with pytest.raises(SecretRetrievalError, match='no-such-secret'):
             provider.get_secret_value(props)
 
-    def test_non_json_secret_raises(
+    def test_plaintext_secret_with_omitted_key_returns_raw_string(
+        self, provider: AWSSecretProvider, secretsmanager: object
+    ) -> None:
+        props = parse_sri(f'aws:{REGION}:not-json:')
+        assert provider.get_secret_value(props) == 'just a plain string'
+
+    def test_non_object_json_secret_with_omitted_key_returns_raw_string(
+        self, provider: AWSSecretProvider, secretsmanager: object
+    ) -> None:
+        props = parse_sri(f'aws:{REGION}:not-object:')
+        assert provider.get_secret_value(props) == json.dumps(['a', 'b'])
+
+    def test_plaintext_secret_with_key_raises(
         self, provider: AWSSecretProvider, secretsmanager: object
     ) -> None:
         props = parse_sri(f'aws:{REGION}:not-json:KEY')
-        with pytest.raises(SecretRetrievalError, match='not valid JSON'):
+        with pytest.raises(SecretRetrievalError, match='not JSON-based'):
+            provider.get_secret_value(props)
+
+    def test_json_object_secret_with_omitted_key_raises(
+        self, provider: AWSSecretProvider, secretsmanager: object
+    ) -> None:
+        props = parse_sri(f'aws:{REGION}:my-secret:')
+        with pytest.raises(SecretRetrievalError, match='secret_key is required'):
             provider.get_secret_value(props)
 
     def test_missing_region_raises(self, provider: AWSSecretProvider) -> None:
@@ -73,11 +93,11 @@ class TestAWSSecretProvider:
     def test_caching(self, provider: AWSSecretProvider, secretsmanager: object) -> None:
         props = parse_sri(f'aws:{REGION}:my-secret:OPENAI_API_KEY')
         provider.get_secret_value(props)
-        info = _get_aws_secret_json.cache_info()
+        info = _get_aws_secret_string.cache_info()
         assert info.misses == 1
 
         provider.get_secret_value(props)
-        info = _get_aws_secret_json.cache_info()
+        info = _get_aws_secret_string.cache_info()
         assert info.hits == 1
         assert info.misses == 1
 
@@ -86,4 +106,4 @@ class TestAWSSecretProvider:
         provider.get_secret_value(props)
         AWSSecretProvider.clear_cache()
         provider.get_secret_value(props)
-        assert _get_aws_secret_json.cache_info().misses == 1
+        assert _get_aws_secret_string.cache_info().misses == 1

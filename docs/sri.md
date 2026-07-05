@@ -17,9 +17,9 @@ An SRI is always **exactly four colon-separated parts**:
 | `provider` | ✅ | The vault scheme, e.g. `aws`, `databricks`, `azure`, `gcp`. Must be a lowercase name. Selects which registered [provider](providers.md) resolves the secret. |
 | `qualifier` | — | Provider-specific location or profile. May be **empty**. For AWS it is the region; for Databricks it is the CLI profile name; for Azure it is the vault name; for GCP it is the project id. |
 | `secret_name` | ✅ | The secret's identifier within the vault (an AWS secret name, a Databricks scope, an Azure/GCP secret name, …). |
-| `secret_key` | ✅ | The key selected from within the secret (a JSON key for AWS, a secret key for Databricks, a version for Azure/GCP). |
+| `secret_key` | — | The key selected from within the secret (a JSON key for AWS, a secret key for Databricks, a version for Azure/GCP). May be **empty**; whether that's meaningful is provider-defined — e.g. the AWS provider allows it for plaintext secrets, but Databricks/Azure/GCP require it. |
 
-Only `qualifier` may be empty. `provider`, `secret_name`, and `secret_key` must all be non-empty.
+`provider` and `secret_name` must be non-empty; `qualifier` and `secret_key` may both be empty.
 
 ## Examples
 
@@ -49,7 +49,7 @@ Vaultriever validates the **structure** of an SRI, not the existence of the secr
 - Exactly `4` colon-separated parts.
 - `provider` matches `^[a-z][a-z0-9_-]*$` — lowercase, starting with a letter.
 - `qualifier` matches `^[A-Za-z0-9._-]*$` — letters, digits, `.`, `_`, `-`, or empty.
-- `secret_name` and `secret_key` are non-empty.
+- `secret_name` is non-empty.
 
 The strict `qualifier` grammar is deliberate: it prevents colon-heavy strings such as
 `postgresql://user:pass@host:5432/db` from being mistaken for an SRI.
@@ -72,11 +72,12 @@ props.secret_name   # 'my-secret'
 props.secret_key    # 'API_KEY'
 ```
 
-An **empty qualifier** is normalized to `None` on the parsed
+An **empty qualifier or secret_key** is normalized to `None` on the parsed
 [`SecretProperties`](api/sri.md#vaultriever.sri.SecretProperties):
 
 ```python
-parse_sri('databricks::my-scope:MY_KEY').qualifier  # None
+parse_sri('databricks::my-scope:MY_KEY').qualifier   # None
+parse_sri('aws:us-east-1:my-plain-secret:').secret_key  # None
 ```
 
 `parse_sri` raises [`SRIParseError`](api/exceptions.md#vaultriever.exceptions.SRIParseError) for

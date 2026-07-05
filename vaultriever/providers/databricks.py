@@ -80,6 +80,10 @@ class DatabricksSecretProvider:
     name = 'databricks'
 
     def get_secret_value(self, props: SecretProperties) -> Any:
+        if not props.secret_key:
+            raise SecretRetrievalError(
+                "Databricks SRIs require a non-empty key, e.g. 'databricks::my-scope:MY_KEY'"
+            )
         context = resolve_databricks_context(props.qualifier)
         logger.debug(
             'Fetching Databricks secret scope=%r profile=%r', props.secret_name, context.profile

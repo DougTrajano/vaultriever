@@ -12,6 +12,7 @@ class TestIsSRI:
             'databricks::my-secret-scope:OPENAI_API_KEY',
             'azure:my-vault:my-secret:latest',
             'my_vault-2:qualifier-val:name:key',
+            'aws:us-east-1:my-plain-secret:',  # empty secret_key
         ],
     )
     def test_valid(self, value: str) -> None:
@@ -27,7 +28,6 @@ class TestIsSRI:
             'AWS:us-east-1:my-secret:KEY',  # uppercase provider
             ':us-east-1:my-secret:KEY',  # empty provider
             'aws:us-east-1::KEY',  # empty secret_name
-            'aws:us-east-1:my-secret:',  # empty secret_key
             'postgresql://user:pass@host:5432/db',  # URL-ish, invalid provider chars
         ],
     )
@@ -55,9 +55,16 @@ class TestParseSRI:
         assert props.secret_name == 'my-secret-scope'
         assert props.secret_key == 'OPENAI_API_KEY'
 
+    def test_empty_secret_key_becomes_none(self) -> None:
+        props = parse_sri('aws:us-east-1:my-plain-secret:')
+        assert props.provider == 'aws'
+        assert props.qualifier == 'us-east-1'
+        assert props.secret_name == 'my-plain-secret'
+        assert props.secret_key is None
+
     @pytest.mark.parametrize(
         'value',
-        ['not-an-sri', 'a:b:c', 'a:b:c:d:e', 'AWS:r:n:k', 'aws:r::k', 'aws:r:n:'],
+        ['not-an-sri', 'a:b:c', 'a:b:c:d:e', 'AWS:r:n:k', 'aws:r::k'],
     )
     def test_malformed_raises(self, value: str) -> None:
         expected = "Expected 'provider:qualifier:secret_name:secret_key'"

@@ -18,6 +18,7 @@ class FakeProvider:
 
     def get_secret_value(self, props: SecretProperties) -> Any:
         self.calls.append(props)
+        assert props.secret_key is not None
         try:
             return self.secrets[props.secret_key]
         except KeyError:

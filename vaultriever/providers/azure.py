@@ -59,6 +59,10 @@ class AzureSecretProvider:
             raise SecretRetrievalError(
                 "Azure SRIs require a non-empty vault name, e.g. 'azure:my-vault:my-secret:latest'"
             )
+        if not props.secret_key:
+            raise SecretRetrievalError(
+                "Azure SRIs require a non-empty version, e.g. 'azure:my-vault:my-secret:latest'"
+            )
         return _get_azure_secret_value(props.qualifier, props.secret_name, props.secret_key)
 
     @staticmethod

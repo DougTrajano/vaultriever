@@ -54,6 +54,13 @@ class TestDatabricksSecretProvider:
         provider.get_secret_value(props)
         assert calls == [(DatabricksContext(profile='staging'), 'my-scope', 'MY_KEY')]
 
+    def test_missing_key_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        provider = DatabricksSecretProvider()
+        props = parse_sri('databricks::my-scope:')
+
+        with pytest.raises(SecretRetrievalError, match='non-empty key'):
+            provider.get_secret_value(props)
+
     def test_sdk_error_is_wrapped(self, monkeypatch: pytest.MonkeyPatch) -> None:
         def fake_get_secret(context: DatabricksContext, scope: str, key: str) -> str:
             raise RuntimeError('secret-value-should-not-leak')
