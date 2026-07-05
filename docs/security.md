@@ -31,7 +31,7 @@ a client — and never log its result.
 ## Errors never contain secret values
 
 All Vaultriever exceptions are designed so that **error messages never include the resolved secret
-value**. Messages may reference non-sensitive SRI components — the `provider`, `region`, or
+value**. Messages may reference non-sensitive SRI components — the `provider`, `qualifier`, or
 `secret_name` — to aid debugging, but not the secret itself. `SRIParseError` additionally avoids
 echoing the full input, so a string that merely *looks* like a secret is not leaked through a
 parse error.

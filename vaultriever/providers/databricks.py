@@ -2,10 +2,10 @@
 
 SRI semantics: ``databricks:<profile>:<scope>:<key>``.
 
-- Empty region (``databricks::my-scope:MY_KEY``) -> default workspace: the
+- Empty qualifier (``databricks::my-scope:MY_KEY``) -> default workspace: the
     runtime ``dbutils`` when running on Databricks, otherwise the SDK's default
     authentication.
-- Non-empty region -> used as the Databricks CLI profile name, e.g.
+- Non-empty qualifier -> used as the Databricks CLI profile name, e.g.
   ``databricks:staging:my-scope:MY_KEY`` reads via the ``staging`` profile.
 
 Requires the ``databricks`` extra outside a Databricks runtime:
@@ -31,15 +31,15 @@ class DatabricksContext:
     profile: str | None
 
 
-def resolve_databricks_context(region: str | None) -> DatabricksContext:
-    """Map the SRI region component to a Databricks context.
+def resolve_databricks_context(qualifier: str | None) -> DatabricksContext:
+    """Map the SRI qualifier component to a Databricks context.
 
-    An empty/None region selects the default workspace; anything else is
+    An empty/None qualifier selects the default workspace; anything else is
     interpreted as a Databricks CLI profile name.
     """
-    if not region:
+    if not qualifier:
         return DatabricksContext(profile=None)
-    return DatabricksContext(profile=region)
+    return DatabricksContext(profile=qualifier)
 
 
 def _get_secret(context: DatabricksContext, scope: str, key: str) -> str:
@@ -80,7 +80,7 @@ class DatabricksSecretProvider:
     name = 'databricks'
 
     def get_secret_value(self, props: SecretProperties) -> Any:
-        context = resolve_databricks_context(props.region)
+        context = resolve_databricks_context(props.qualifier)
         logger.debug(
             'Fetching Databricks secret scope=%r profile=%r', props.secret_name, context.profile
         )

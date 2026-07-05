@@ -61,11 +61,11 @@ class AWSSecretProvider:
     name = 'aws'
 
     def get_secret_value(self, props: SecretProperties) -> Any:
-        if not props.region:
+        if not props.qualifier:
             raise SecretRetrievalError(
                 "AWS SRIs require a non-empty region, e.g. 'aws:us-east-1:my-secret:MY_KEY'"
             )
-        data = _get_aws_secret_json(props.secret_name, props.region)
+        data = _get_aws_secret_json(props.secret_name, props.qualifier)
         try:
             return data[props.secret_key]
         except KeyError:

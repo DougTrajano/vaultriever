@@ -2,7 +2,7 @@
 
 Secrets are addressed with a Secret Resource Identifier (SRI)::
 
-    provider:region:secret_name:secret_key
+    provider:qualifier:secret_name:secret_key
 """
 
 from vaultriever.exceptions import (

@@ -11,7 +11,7 @@ class TestIsSRI:
             'aws:us-east-1:my-secret:OPENAI_API_KEY',
             'databricks::my-secret-scope:OPENAI_API_KEY',
             'azure:my-vault:my-secret:latest',
-            'my_vault-2:region:name:key',
+            'my_vault-2:qualifier-val:name:key',
         ],
     )
     def test_valid(self, value: str) -> None:
@@ -43,15 +43,15 @@ class TestParseSRI:
         props = parse_sri('aws:us-east-1:my-secret:OPENAI_API_KEY')
         assert props == SecretProperties(
             provider='aws',
-            region='us-east-1',
+            qualifier='us-east-1',
             secret_name='my-secret',
             secret_key='OPENAI_API_KEY',
         )
 
-    def test_empty_region_becomes_none(self) -> None:
+    def test_empty_qualifier_becomes_none(self) -> None:
         props = parse_sri('databricks::my-secret-scope:OPENAI_API_KEY')
         assert props.provider == 'databricks'
-        assert props.region is None
+        assert props.qualifier is None
         assert props.secret_name == 'my-secret-scope'
         assert props.secret_key == 'OPENAI_API_KEY'
 
@@ -60,7 +60,7 @@ class TestParseSRI:
         ['not-an-sri', 'a:b:c', 'a:b:c:d:e', 'AWS:r:n:k', 'aws:r::k', 'aws:r:n:'],
     )
     def test_malformed_raises(self, value: str) -> None:
-        expected = "Expected 'provider:region:secret_name:secret_key'"
+        expected = "Expected 'provider:qualifier:secret_name:secret_key'"
         with pytest.raises(SRIParseError, match=expected):
             parse_sri(value)
 

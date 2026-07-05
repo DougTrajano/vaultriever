@@ -15,13 +15,13 @@ from vaultriever.sri import parse_sri
 
 
 class TestResolveDatabricksContext:
-    def test_none_region_is_default(self) -> None:
+    def test_none_qualifier_is_default(self) -> None:
         assert resolve_databricks_context(None) == DatabricksContext(profile=None)
 
-    def test_empty_region_is_default(self) -> None:
+    def test_empty_qualifier_is_default(self) -> None:
         assert resolve_databricks_context('') == DatabricksContext(profile=None)
 
-    def test_region_maps_to_profile(self) -> None:
+    def test_qualifier_maps_to_profile(self) -> None:
         assert resolve_databricks_context('staging') == DatabricksContext(profile='staging')
 
 

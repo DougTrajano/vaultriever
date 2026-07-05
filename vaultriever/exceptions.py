@@ -1,7 +1,7 @@
 """Package-specific exceptions.
 
 Error messages must never contain secret values. Including the SRI's
-secret_name/region is fine; the resolved value is not.
+secret_name/qualifier is fine; the resolved value is not.
 """
 
 from __future__ import annotations

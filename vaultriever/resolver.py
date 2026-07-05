@@ -20,9 +20,9 @@ def resolve_secret(secret_sri: str) -> str:
     props = parse_sri(secret_sri)
     provider = SecretProviderRegistry.get(props.provider)
     logger.debug(
-        'Resolving secret via provider=%r region=%r secret_name=%r',
+        'Resolving secret via provider=%r qualifier=%r secret_name=%r',
         props.provider,
-        props.region,
+        props.qualifier,
         props.secret_name,
     )
     value = provider.get_secret_value(props)

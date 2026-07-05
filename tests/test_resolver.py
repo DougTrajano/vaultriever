@@ -54,19 +54,11 @@ class TestResolveSecret:
         with pytest.raises(SecretRetrievalError, match='MISSING'):
             resolve_secret('fakevault::my-secret:MISSING')
 
-    def test_stub_providers_raise(self) -> None:
-        with pytest.raises(ProviderNotRegisteredError, match="'azure'"):
-            resolve_secret('azure:vault:secret:key')
-        with pytest.raises(ProviderNotRegisteredError, match="'gcp'"):
-            resolve_secret('gcp:project:secret:key')
-
 
 class TestRegistry:
     def test_available_providers_includes_defaults(self) -> None:
         available = SecretProviderRegistry.available_providers()
-        assert {'aws', 'databricks'} <= set(available)
-        assert 'azure' not in available
-        assert 'gcp' not in available
+        assert {'aws', 'azure', 'databricks', 'gcp'} <= set(available)
 
     def test_register_and_unregister(self) -> None:
         provider = FakeProvider({})

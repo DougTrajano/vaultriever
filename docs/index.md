@@ -8,7 +8,7 @@ Vaultriever lets you address a secret with a single, portable string — a **Sec
 Identifier (SRI)** — and resolve it transparently from the vault it lives in:
 
 ```
-provider:region:secret_name:secret_key
+provider:qualifier:secret_name:secret_key
 ```
 
 ```python
@@ -31,8 +31,8 @@ settings.openai_api_key.get_secret_value()  # the resolved secret
 ## Why Vaultriever?
 
 - **One identifier, many vaults.** The same 4-part SRI addresses AWS Secrets Manager, Databricks,
-  and any [custom provider](custom-providers.md) you register — swap the `provider` segment, keep
-  everything else.
+  Azure Key Vault, GCP Secret Manager, and any [custom provider](custom-providers.md) you register —
+  swap the `provider` segment, keep everything else.
 - **Drop-in with pydantic-settings.** Add the [`SecretSRIMixin`](pydantic-settings.md) to a
   `BaseSettings` model and SRI-shaped values are resolved and wrapped in `SecretStr` automatically.
   Everything else — literals, URLs, non-string values — passes through untouched.
