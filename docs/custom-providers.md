@@ -21,7 +21,7 @@ class MyVaultProvider:
     name = 'myvault'
 
     def get_secret_value(self, props: SecretProperties) -> str:
-        # props.region, props.secret_name, props.secret_key are available here.
+        # props.qualifier, props.secret_name, props.secret_key are available here.
         # Fetch and return the secret value as a string.
         ...
 ```
@@ -39,7 +39,7 @@ from vaultriever import SecretProviderRegistry
 
 SecretProviderRegistry.register(MyVaultProvider())
 
-# Now 'myvault:region:name:key' SRIs resolve through it.
+# Now 'myvault:qualifier:name:key' SRIs resolve through it.
 ```
 
 Registration is global for the process and replaces any existing provider with the same `name`.
@@ -52,7 +52,7 @@ from vaultriever import SecretProviderRegistry
 SecretProviderRegistry.register(MyVaultProvider())
 SecretProviderRegistry.unregister('myvault')      # remove it (no-op if absent)
 SecretProviderRegistry.is_registered('myvault')   # False
-SecretProviderRegistry.available_providers()      # ['aws', 'databricks']
+SecretProviderRegistry.available_providers()      # ['aws', 'azure', 'databricks', 'gcp']
 ```
 
 ## A complete example
@@ -88,11 +88,12 @@ resolve_secret('envfile::app:API_KEY')  # 'sk-local-123'
 - **Never leak secret values in errors.** Raise
   [`SecretRetrievalError`](api/exceptions.md#vaultriever.exceptions.SecretRetrievalError) (or a
   subclass) on failure, and include only non-sensitive context such as the `secret_name` or
-  `region` — never the resolved value. This mirrors the built-in providers.
+  `qualifier` — never the resolved value. This mirrors the built-in providers.
 - **Import SDKs lazily.** Import heavy or optional dependencies inside `get_secret_value`, not at
   module top level, so registering the provider stays cheap and import-safe.
-- **Interpret `region` however fits your vault.** It may be a region, a profile, a namespace, or
-  empty — it is provider-defined. `props.region` is `None` when the SRI's region segment is empty.
+- **Interpret `qualifier` however fits your vault.** It may be a region, a profile, a vault/project
+  name, or empty — it is provider-defined. `props.qualifier` is `None` when the SRI's qualifier
+  segment is empty.
 
 ## API reference
 

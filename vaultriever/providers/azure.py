@@ -55,11 +55,11 @@ class AzureSecretProvider:
     name = 'azure'
 
     def get_secret_value(self, props: SecretProperties) -> Any:
-        if not props.region:
+        if not props.qualifier:
             raise SecretRetrievalError(
                 "Azure SRIs require a non-empty vault name, e.g. 'azure:my-vault:my-secret:latest'"
             )
-        return _get_azure_secret_value(props.region, props.secret_name, props.secret_key)
+        return _get_azure_secret_value(props.qualifier, props.secret_name, props.secret_key)
 
     @staticmethod
     def clear_cache() -> None:

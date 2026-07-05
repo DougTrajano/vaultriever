@@ -59,7 +59,7 @@ resolve_secret('aws:us-east-1:my-secret:DB_PASSWORD')     # '...' (same cached p
 
 **SRI form:** `databricks:<profile>:<scope>:<key>`
 
-The `region` segment is interpreted as a **Databricks CLI profile name**, and `secret_name` is the
+The `qualifier` segment is interpreted as a **Databricks CLI profile name**, and `secret_name` is the
 **secret scope**:
 
 | SRI | Behavior |
@@ -71,7 +71,7 @@ The `region` segment is interpreted as a **Databricks CLI profile name**, and `s
   extra is not required.
 - **Off-runtime**, the [databricks-sdk](https://github.com/databricks/databricks-sdk-py) is used
   (install `vaultriever[databricks]`) with default authentication, or the CLI profile named by the
-  SRI's region.
+  SRI's qualifier.
 - A missing SDK or unusable context raises
   [`DatabricksConfigurationError`](api/exceptions.md#vaultriever.exceptions.DatabricksConfigurationError).
 
@@ -97,7 +97,7 @@ azure:my-vault:my-secret:latest
 
 - **Single-value secrets.** Unlike AWS, Key Vault secrets hold one value; `secret_key` is
   the **version** to read — the literal `latest`, or a specific version id.
-- **`region` is the vault name**, not an Azure region. The provider builds the vault URL as
+- **The qualifier is the vault name**, not an Azure region. The provider builds the vault URL as
   `https://<vault_name>.vault.azure.net/`.
 - **Credentials** come from `DefaultAzureCredential` — environment variables, managed
   identity, Azure CLI, Visual Studio Code, etc.
@@ -129,7 +129,7 @@ gcp:my-project:my-secret:latest
 
 - **Single-value secrets.** As with Azure, `secret_key` is the **version** to read — the
   literal `latest`, or a specific version number.
-- **`region` is the GCP project id.** The provider builds the resource name
+- **The qualifier is the GCP project id.** The provider builds the resource name
   `projects/<project_id>/secrets/<secret_name>/versions/<version>`.
 - **Credentials** come from Application Default Credentials (ADC) — a service account key,
   `gcloud auth application-default login`, or the ambient identity on GCE/GKE/Cloud Run.

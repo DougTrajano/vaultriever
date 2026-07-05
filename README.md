@@ -7,13 +7,13 @@ Retrieve secrets in an ARN-like way from different vaults seamlessly, compatible
 Secrets are addressed with a 4-part string:
 
 ```
-provider:region:secret_name:secret_key
+provider:qualifier:secret_name:secret_key
 ```
 
 | Provider | Example | Notes |
 | --- | --- | --- |
 | AWS Secrets Manager | `aws:us-east-1:my-secret:OPENAI_API_KEY` | Secret must be a JSON object; `secret_key` selects a key. |
-| Databricks | `databricks::my-secret-scope:OPENAI_API_KEY` | Empty region → default workspace/profile; non-empty region → CLI profile name. |
+| Databricks | `databricks::my-secret-scope:OPENAI_API_KEY` | Empty qualifier → default workspace/profile; non-empty qualifier → CLI profile name. |
 | Azure Key Vault | `azure:my-vault:my-secret:latest` | Single-value secret; `secret_key` is the version (`latest` or a version id). |
 | GCP Secret Manager | `gcp:my-project:my-secret:latest` | Single-value secret; `secret_key` is the version (`latest` or a version number). |
 
@@ -88,7 +88,7 @@ class MyVaultProvider:
 
 
 SecretProviderRegistry.register(MyVaultProvider())
-# Now 'myvault:region:name:key' SRIs resolve through it.
+# Now 'myvault:qualifier:name:key' SRIs resolve through it.
 ```
 
 ## Providers
@@ -102,18 +102,18 @@ SecretProviderRegistry.register(MyVaultProvider())
 ### Databricks
 
 - On a Databricks runtime, secrets are read via the native `dbutils`.
-- Elsewhere, the [databricks-sdk](https://github.com/databricks/databricks-sdk-py) is used with default authentication, or with the CLI profile named by the SRI's region component (`databricks:staging:my-scope:MY_KEY`).
+- Elsewhere, the [databricks-sdk](https://github.com/databricks/databricks-sdk-py) is used with default authentication, or with the CLI profile named by the SRI's qualifier component (`databricks:staging:my-scope:MY_KEY`).
 
 ### Azure Key Vault
 
 - Credentials come from `DefaultAzureCredential` (env vars, managed identity, Azure CLI, etc.).
-- The region segment is the vault name; the provider builds the vault URL as `https://<vault_name>.vault.azure.net/`.
+- The qualifier is the vault name; the provider builds the vault URL as `https://<vault_name>.vault.azure.net/`.
 - Secret values are cached per `(vault_name, secret_name, version)` for the process lifetime; call `AzureSecretProvider.clear_cache()` after a rotation.
 
 ### GCP Secret Manager
 
 - Credentials come from Application Default Credentials (ADC).
-- The region segment is the GCP project id; the provider builds the resource name `projects/<project_id>/secrets/<secret_name>/versions/<version>`.
+- The qualifier is the GCP project id; the provider builds the resource name `projects/<project_id>/secrets/<secret_name>/versions/<version>`.
 - Secret values are cached per `(project_id, secret_name, version)` for the process lifetime; call `GCPSecretProvider.clear_cache()` after a rotation.
 
 ## Development

@@ -2,7 +2,7 @@
 
 ## What this repository is
 
-vaultriever resolves secret resource identifiers (SRIs) like `provider:region:secret_name:secret_key` into secret values, with the main user-facing API re-exported from [vaultriever/__init__.py](vaultriever/__init__.py). The core modules are [vaultriever/sri.py](vaultriever/sri.py), [vaultriever/resolver.py](vaultriever/resolver.py), [vaultriever/settings_mixin.py](vaultriever/settings_mixin.py), and [vaultriever/providers](vaultriever/providers).
+vaultriever resolves secret resource identifiers (SRIs) like `provider:qualifier:secret_name:secret_key` into secret values, with the main user-facing API re-exported from [vaultriever/__init__.py](vaultriever/__init__.py). The core modules are [vaultriever/sri.py](vaultriever/sri.py), [vaultriever/resolver.py](vaultriever/resolver.py), [vaultriever/settings_mixin.py](vaultriever/settings_mixin.py), and [vaultriever/providers](vaultriever/providers).
 
 ## How to work here
 

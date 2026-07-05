@@ -81,5 +81,5 @@ resolve_secret('aws:us-east-1:my-secret:API_KEY')  # 'sk-...'
 
 - **[Secret Resource Identifiers](sri.md)** — the exact grammar and validation rules.
 - **[Pydantic Settings Integration](pydantic-settings.md)** — masking, env export, and opt-outs.
-- **[Providers](providers.md)** — AWS and Databricks specifics (auth, caching, regions).
+- **[Providers](providers.md)** — AWS, Databricks, Azure, and GCP specifics (auth, caching, qualifiers).
 - **[Custom Providers](custom-providers.md)** — plug in your own vault.
