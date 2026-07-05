@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vaultriever"
-version = "0.1.2"
+version = "0.1.0"
 description = "Retrieve secrets in an ARN-like way from different vaults seamlessly, compatible with pydantic-settings."
 readme = "README.md"
 license = "MIT"
