@@ -50,7 +50,7 @@ Behavior:
 
 - `str` / `SecretStr` values that look like an SRI (and reference a registered provider) are resolved and wrapped in `SecretStr`, so they stay masked in `repr()` and logs.
 - Everything else passes through unchanged — literals, URLs, non-string values.
-- Validated values are also exported to `os.environ` under the field name for downstream usage. **This writes resolved secrets in plaintext to the process environment**; opt out per model:
+- Validated values are also exported to `os.environ` under the field name for downstream usage by default. **This writes resolved secrets in plaintext to the process environment**; see the [opt out instructions](docs/security.md#environment-export-writes-plaintext) and disable it per model:
 
 ```python
 from typing import ClassVar

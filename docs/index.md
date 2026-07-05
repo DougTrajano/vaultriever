@@ -36,6 +36,9 @@ settings.openai_api_key.get_secret_value()  # the resolved secret
 - **Drop-in with pydantic-settings.** Add the [`SecretSRIMixin`](pydantic-settings.md) to a
   `BaseSettings` model and SRI-shaped values are resolved and wrapped in `SecretStr` automatically.
   Everything else — literals, URLs, non-string values — passes through untouched.
+- **Exports values by default.** Validated values are written to `os.environ` under the field
+  name by default; see the [opt out instructions](security.md#environment-export-writes-plaintext)
+  if you want to disable that behavior.
 - **Secrets stay masked.** Resolved values are wrapped in `SecretStr`, so they never leak through
   `repr()` or logs.
 - **Lazy dependencies.** Provider SDKs (`boto3`, `databricks-sdk`) are imported only on first use,
@@ -52,13 +55,13 @@ settings.openai_api_key.get_secret_value()  # the resolved secret
 
 <div class="grid cards" markdown>
 
-- :material-download: **[Installation](installation.md)** — install Vaultriever and the provider
+- :material-download:{ .lg .middle } **[Installation](installation.md)** — install Vaultriever and the provider
   extras you need.
-- :material-rocket-launch: **[Quick Start](quick-start.md)** — resolve your first secret in a few
+- :material-rocket-launch:{ .lg .middle } **[Quick Start](quick-start.md)** — resolve your first secret in a few
   lines.
-- :material-key-chain: **[Secret Resource Identifiers](sri.md)** — learn the SRI format and its
+- :material-key-chain:{ .lg .middle } **[Secret Resource Identifiers](sri.md)** — learn the SRI format and its
   rules.
-- :material-shield-lock: **[Security](security.md)** — how secrets are handled and what to watch
+- :material-shield-lock:{ .lg .middle } **[Security](security.md)** — how secrets are handled and what to watch
   for.
 
 </div>
