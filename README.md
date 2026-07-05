@@ -125,6 +125,10 @@ uv run ruff check .
 uv run mypy
 ```
 
+Run `uv run pre-commit install` once so `ruff format`, `ruff check --fix`, and `mypy` run
+automatically on `git commit` — this is the same [pre-commit config](.pre-commit-config.yaml) the
+CI lint job runs, so a clean local commit means CI lint will pass too.
+
 Releases are published to PyPI by pushing a `vX.Y.Z` tag.
 
 ## License
