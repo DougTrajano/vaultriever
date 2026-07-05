@@ -51,8 +51,7 @@ class GCPSecretProvider:
     def get_secret_value(self, props: SecretProperties) -> Any:
         if not props.region:
             raise SecretRetrievalError(
-                "GCP SRIs require a non-empty project id, e.g. "
-                "'gcp:my-project:my-secret:latest'"
+                "GCP SRIs require a non-empty project id, e.g. 'gcp:my-project:my-secret:latest'"
             )
         return _get_gcp_secret_value(props.region, props.secret_name, props.secret_key)
 
