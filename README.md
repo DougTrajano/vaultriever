@@ -14,14 +14,16 @@ provider:region:secret_name:secret_key
 | --- | --- | --- |
 | AWS Secrets Manager | `aws:us-east-1:my-secret:OPENAI_API_KEY` | Secret must be a JSON object; `secret_key` selects a key. |
 | Databricks | `databricks::my-secret-scope:OPENAI_API_KEY` | Empty region → default workspace/profile; non-empty region → CLI profile name. |
-| Azure Key Vault | `azure:<vault_or_region>:<secret_name>:<key_or_version>` | Planned. |
-| GCP Secret Manager | `gcp:<project_or_region>:<secret_name>:<key_or_version>` | Planned. |
+| Azure Key Vault | `azure:my-vault:my-secret:latest` | Single-value secret; `secret_key` is the version (`latest` or a version id). |
+| GCP Secret Manager | `gcp:my-project:my-secret:latest` | Single-value secret; `secret_key` is the version (`latest` or a version number). |
 
 ## Installation
 
 ```bash
 pip install vaultriever[aws]         # AWS Secrets Manager
 pip install vaultriever[databricks]  # Databricks (not needed on a Databricks runtime)
+pip install vaultriever[azure]       # Azure Key Vault
+pip install vaultriever[gcp]         # GCP Secret Manager
 ```
 
 ## Usage
@@ -101,6 +103,18 @@ SecretProviderRegistry.register(MyVaultProvider())
 
 - On a Databricks runtime, secrets are read via the native `dbutils`.
 - Elsewhere, the [databricks-sdk](https://github.com/databricks/databricks-sdk-py) is used with default authentication, or with the CLI profile named by the SRI's region component (`databricks:staging:my-scope:MY_KEY`).
+
+### Azure Key Vault
+
+- Credentials come from `DefaultAzureCredential` (env vars, managed identity, Azure CLI, etc.).
+- The region segment is the vault name; the provider builds the vault URL as `https://<vault_name>.vault.azure.net/`.
+- Secret values are cached per `(vault_name, secret_name, version)` for the process lifetime; call `AzureSecretProvider.clear_cache()` after a rotation.
+
+### GCP Secret Manager
+
+- Credentials come from Application Default Credentials (ADC).
+- The region segment is the GCP project id; the provider builds the resource name `projects/<project_id>/secrets/<secret_name>/versions/<version>`.
+- Secret values are cached per `(project_id, secret_name, version)` for the process lifetime; call `GCPSecretProvider.clear_cache()` after a rotation.
 
 ## Development
 
