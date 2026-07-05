@@ -27,12 +27,20 @@ jobs:
         with:
           python-version: '3.x'
 
+      # Use the release payload's tag_name rather than GITHUB_REF: when the
+      # tag is created by publishing the release, GITHUB_REF can still point
+      # at the target branch, which previously produced an empty version.
       - name: Extract version from release tag
         id: get_version
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          VERSION=${VERSION#v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=${TAG_NAME#v}
+          if [[ ! "$VERSION" =~ ^[0-9]+(\.[0-9]+)+([abc0-9.!+-]*)?$ ]]; then
+            echo "::error::Cannot derive a valid version from release tag '${TAG_NAME}'"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update version in pyproject.toml
         run: |
