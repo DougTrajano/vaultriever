@@ -51,6 +51,57 @@ settings.openai_api_key.get_secret_value()  # the resolved secret
 3. **Resolve** the secret transparently inside settings models via `SecretSRIMixin`, or on demand
    with the standalone [`resolve_secret`](api/resolver.md) function.
 
+## Example: one workload, two vaults
+
+Vaultriever is most useful when the exact same workload has to run in more than one
+environment — for example, a [Pydantic AI](https://ai.pydantic.dev/) agent that runs both in AWS
+and on Databricks, using the same `OPENAI_API_KEY` name in both places. Point that variable at an
+SRI instead of a literal key, and let Vaultriever resolve it against whichever vault is available
+at runtime — `agent.py` itself never changes.
+
+`.env.aws` — deployed as `.env` on AWS:
+
+```
+OPENAI_API_KEY=aws:us-east-1:my-secret:OPENAI_API_KEY
+```
+
+`.env.databricks` — deployed as `.env` on Databricks:
+
+```
+OPENAI_API_KEY=databricks::my-scope:OPENAI_API_KEY
+```
+
+`agent.py` — identical on both platforms:
+
+```python
+from pydantic import SecretStr
+from pydantic_ai import Agent
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from vaultriever import SecretSRIMixin
+
+
+class AppSettings(SecretSRIMixin, BaseSettings):
+    model_config = SettingsConfigDict(env_file='.env')
+
+    OPENAI_API_KEY: str | SecretStr
+
+
+# Resolves the SRI for whichever vault is available and writes the result
+# back to os.environ['OPENAI_API_KEY'], where pydantic-ai's OpenAI provider
+# expects to find it.
+AppSettings()
+
+agent = Agent('openai:gpt-5.2', instructions='Be concise, reply with one sentence.')
+
+if __name__ == '__main__':
+    result = agent.run_sync('Where does "hello world" come from?')
+    print(result.output)
+```
+
+Both `.env` files use the same field name, `OPENAI_API_KEY`; only the SRI's `provider` segment
+changes. `agent.py` never imports `boto3` or `databricks-sdk`, and never branches on which
+platform it's running on — Vaultriever and the deployment pipeline handle that.
+
 ## Next steps
 
 <div class="grid cards" markdown>
