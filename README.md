@@ -4,6 +4,8 @@ Retrieve secrets in an ARN-like way from different vaults seamlessly, compatible
 
 It's particularly useful for projects that need to support multiple vaults, or for libraries that want to avoid forcing a specific vault on their users.
 
+Vaultriever is an abstraction over vaults, which add an extra layer of indirection to secret retrieval. Reach for it when the same workload needs to run against more than one vault provider (e.g. the same code deployed to both AWS and Databricks). If you only ever interact with one vault, use that vault's SDK directly instead.
+
 ## Secret Resource Identifier (SRI)
 
 Secrets are addressed with a 4-part string:
