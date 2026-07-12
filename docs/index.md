@@ -53,37 +53,35 @@ settings.openai_api_key.get_secret_value()  # the resolved secret
 
 ## Example: one workload, two vaults
 
-Vaultriever is most useful when the exact same workload has to run in more than one
-environment — for example, a [Pydantic AI](https://ai.pydantic.dev/) agent that runs both in AWS
-and on Databricks, using the same `OPENAI_API_KEY` name in both places. Point that variable at an
-SRI instead of a literal key, and let Vaultriever resolve it against whichever vault is available
-at runtime — `agent.py` itself never changes.
+Vaultriever is most useful when the exact same workload has to run in more than one environment — for example, a [Pydantic AI](https://ai.pydantic.dev/) agent that runs both in AWS and on Databricks, using the same `OPENAI_API_KEY` name in both places. Point that variable at an SRI instead of a literal key, and let Vaultriever resolve it against whichever vault is available at runtime — `agent.py` itself never changes.
 
 `.env.aws` — deployed as `.env` on AWS:
 
-```
-OPENAI_API_KEY=aws:us-east-1:my-secret:OPENAI_API_KEY
+```toml
+OPENAI_API_KEY="aws:us-east-1:my-secret:OPENAI_API_KEY"
 ```
 
 `.env.databricks` — deployed as `.env` on Databricks:
 
-```
-OPENAI_API_KEY=databricks::my-scope:OPENAI_API_KEY
+```toml
+OPENAI_API_KEY="databricks::my-scope:OPENAI_API_KEY"
 ```
 
 `agent.py` — identical on both platforms:
 
 ```python
-from pydantic import SecretStr
+from pydantic import SecretStr, Field
 from pydantic_ai import Agent
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 from vaultriever import SecretSRIMixin
 
 
 class AppSettings(SecretSRIMixin, BaseSettings):
-    model_config = SettingsConfigDict(env_file='.env')
 
-    OPENAI_API_KEY: str | SecretStr
+    OPENAI_API_KEY: str | SecretStr = Field(
+        default='aws:us-east-1:my-secret:OPENAI_API_KEY',
+        description='OpenAI API key; SRI or literal.',
+    )
 
 
 # Resolves the SRI for whichever vault is available and writes the result
@@ -98,9 +96,7 @@ if __name__ == '__main__':
     print(result.output)
 ```
 
-Both `.env` files use the same field name, `OPENAI_API_KEY`; only the SRI's `provider` segment
-changes. `agent.py` never imports `boto3` or `databricks-sdk`, and never branches on which
-platform it's running on — Vaultriever and the deployment pipeline handle that.
+Both `.env` files use the same field name, `OPENAI_API_KEY`; only the SRI's `provider` segment changes. `agent.py` never imports `boto3` or `databricks-sdk`, and never branches on which platform it's running on — Vaultriever and the deployment pipeline handle that.
 
 ## Next steps
 
